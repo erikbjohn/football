@@ -1,0 +1,59 @@
+---
+title: "Football data memo"
+author: "Erik Johnson"
+date: "1/11/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(stringr)
+library(data.table)
+```
+
+# Traffic speeds
+
+git_speed.R
+
+
+Data Questions:
+
+1.  What is the difference between football_speeds_2018_2.csv and football_speed_2018.csv? (V6 and V7 in 2018_2 not in 2018.)
+
+2.  Is it possible to have these data geocoded in the SQL pull?
+
+3.  2017 data would be useful as another potential counterfactual (same weekend of the year but away rather than home game.)
+
+4. What is the meaning of TMC? (Unique ID for location [yes])?
+
+5. What is ffs?
+
+6. What is confidence?
+
+# Quick Analysis
+
+```{r echo=FALSE, eval=TRUE, cache=TRUE}
+source('R/git_schedule_18.R')
+source('R/git_speed.R')
+schedule_18 <- git_schedule_18()
+speed <- git_speed()
+speed <- speed[, day_year:=paste0(s_day,'_', s_year)]
+schedule_18 <- schedule_18[, day_year:=paste0(s_day, '_', s_year)]
+game_days <- unique(schedule_18$day_year)
+speed_sub <- speed[day_year %in% game_days]
+
+TMCS <- unique(speed_sub$TMC)
+
+for(s_tmc in TMCS){
+  dt_speed <- speed_sub[TMC %in% s_tmc]
+  title <- paste(as.character(unique(dt_speed[, .(TMC, CrossStreet, ROAD_NAME, ROAD_NUM, ROAD_DIR)])), collapse = ' ')
+  setkey(dt_speed, day_year)
+  setkey(schedule_18, day_year)
+  dt_speed <- schedule_18[, .(day_year, home_game)][dt_speed]
+  p <- ggplot2::ggplot(dt_speed, ggplot2::aes(speed, colour=as.factor(home_game))) +
+    ggplot2::geom_density() +
+    ggplot2::ggtitle(title)
+  ggplot2::ggsave(paste0('~/Dropbox/pkg.data/football/plots/', s_tmc, '.png'), p)
+}
+
+```
