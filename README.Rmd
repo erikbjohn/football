@@ -32,7 +32,7 @@ Data Questions:
 
 # Quick Analysis
 
-```{r echo=FALSE, eval=TRUE, cache=TRUE}
+```{r echo=FALSE, eval=FALSE, cache=TRUE}
 source('R/git_schedule_18.R')
 source('R/git_speed.R')
 schedule_18 <- git_schedule_18()
